@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>BugTrack - All Bugs</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -8,6 +9,7 @@
 <body>
 
 <div class="navbar">
+
     <div>
         <strong>BUGTRACK</strong>
     </div>
@@ -17,12 +19,16 @@
         <a href="{{ url_for('dashboard') }}">Dashboard</a> |
         <a href="{{ url_for('logout') }}">Logout</a>
     </div>
+
 </div>
+
 
 <div class="dashboard-container">
 
     <h1>All Bugs</h1>
+
     <p>View and manage reported bugs.</p>
+
 
     {% if bugs %}
 
@@ -37,6 +43,7 @@
             <th>Change Status</th>
         </tr>
 
+
         {% for bug in bugs %}
 
         <tr>
@@ -45,25 +52,32 @@
                 BUG-{{ "%03d"|format(bug["id"]) }}
             </td>
 
+
             <td>
                 <strong>{{ bug["title"] }}</strong>
                 <br>
                 <small>{{ bug["description"] }}</small>
             </td>
 
+
             <td>
                 {{ bug["priority"] }}
             </td>
+
 
             <td>
                 {{ bug["assigned_to"] or "Unassigned" }}
             </td>
 
+
             <td>
                 {{ bug["status"] }}
             </td>
 
+
             <td>
+
+                {% if role == "admin" or bug["assigned_to"] == session["username"] %}
 
                 <form
                     method="POST"
@@ -79,12 +93,14 @@
                             Open
                         </option>
 
+
                         <option
                             value="In Progress"
                             {% if bug["status"] == "In Progress" %}selected{% endif %}
                         >
                             In Progress
                         </option>
+
 
                         <option
                             value="Resolved"
@@ -95,11 +111,18 @@
 
                     </select>
 
+
                     <button type="submit" class="small-button">
                         Update
                     </button>
 
                 </form>
+
+                {% else %}
+
+                <span>View only</span>
+
+                {% endif %}
 
             </td>
 
@@ -109,16 +132,20 @@
 
     </table>
 
+
     {% else %}
 
-        <div class="empty-state">
-            <h2>No bugs yet</h2>
-            <p>There are currently no reported bugs.</p>
+    <div class="empty-state">
 
-            <a href="{{ url_for('create_bug') }}">
-                <button>+ Create First Bug</button>
-            </a>
-        </div>
+        <h2>No bugs yet</h2>
+
+        <p>There are currently no reported bugs.</p>
+
+        <a href="{{ url_for('create_bug') }}">
+            <button>+ Create First Bug</button>
+        </a>
+
+    </div>
 
     {% endif %}
 
