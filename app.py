@@ -27,7 +27,7 @@ def init_db():
         )
     """)
 
-    # Add role column to an existing database if it does not exist
+    # Add role column to existing database if it doesn't exist
     try:
         conn.execute(
             "ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'developer'"
@@ -35,7 +35,7 @@ def init_db():
     except sqlite3.OperationalError:
         pass
 
-    # Make the existing admin account an administrator
+    # Existing admin account becomes Admin
     conn.execute(
         "UPDATE users SET role = 'admin' WHERE username = 'admin'"
     )
@@ -57,18 +57,13 @@ def init_db():
     conn.close()
 
 
-# ---------------- HOME ----------------
-
 @app.route("/")
 def home():
     return redirect(url_for("login"))
 
 
-# ---------------- LOGIN ----------------
-
 @app.route("/login", methods=["GET", "POST"])
 def login():
-
     if request.method == "POST":
 
         username = request.form["username"]
@@ -98,8 +93,6 @@ def login():
     return render_template("login.html")
 
 
-# ---------------- REGISTER ----------------
-
 @app.route("/register", methods=["GET", "POST"])
 def register():
 
@@ -113,7 +106,6 @@ def register():
         conn = get_db_connection()
 
         try:
-
             conn.execute(
                 """
                 INSERT INTO users (username, password, role)
@@ -139,8 +131,6 @@ def register():
 
     return render_template("register.html")
 
-
-# ---------------- DASHBOARD ----------------
 
 @app.route("/dashboard")
 def dashboard():
@@ -184,8 +174,6 @@ def dashboard():
     )
 
 
-# ---------------- CREATE BUG ----------------
-
 @app.route("/create_bug", methods=["GET", "POST"])
 def create_bug():
 
@@ -221,8 +209,6 @@ def create_bug():
     return render_template("create_bug.html")
 
 
-# ---------------- VIEW BUGS ----------------
-
 @app.route("/bugs")
 def bugs():
 
@@ -239,11 +225,10 @@ def bugs():
 
     return render_template(
         "bugs.html",
-        bugs=all_bugs
+        bugs=all_bugs,
+        role=session["role"]
     )
 
-
-# ---------------- UPDATE STATUS ----------------
 
 @app.route("/update_status/<int:bug_id>", methods=["POST"])
 def update_status(bug_id):
@@ -261,11 +246,13 @@ def update_status(bug_id):
     ).fetchone()
 
     if bug is None:
+
         conn.close()
+
         return "Bug not found", 404
 
     # Admin can update any bug.
-    # Developers can update only bugs assigned to them.
+    # Developer can update only bugs assigned to them.
     if (
         session["role"] == "admin"
         or bug["assigned_to"] == session["username"]
@@ -289,8 +276,6 @@ def update_status(bug_id):
         <a href="/bugs">Back to Bugs</a>
     """, 403
 
-
-# ---------------- LOGOUT ----------------
 
 @app.route("/logout")
 def logout():
