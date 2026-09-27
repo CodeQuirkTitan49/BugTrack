@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BugTrack - Create Bug</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="navbar">
+    <div>
+        <strong>BUGTRACK</strong>
+    </div>
+
+    <div>
+        Welcome, {{ session["username"] }} |
+        <a href="{{ url_for('dashboard') }}">Dashboard</a> |
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+</div>
+
+<div class="form-container">
+
+    <h1>Create New Bug</h1>
+    <p>Report a problem in the application.</p>
+
+    <form method="POST">
+
+        <label>Bug Title</label>
+        <input
+            type="text"
+            name="title"
+            placeholder="e.g. Login button not working"
+            required
+        >
+
+        <label>Description</label>
+        <textarea
+            name="description"
+            rows="6"
+            placeholder="Describe the problem..."
+            required
+        ></textarea>
+
+        <label>Priority</label>
+        <select name="priority" required>
+            <option value="Low">Low</option>
+            <option value="Medium" selected>Medium</option>
+            <option value="High">High</option>
+            <option value="Critical">Critical</option>
+        </select>
+
+        <label>Assigned To</label>
+        <input
+            type="text"
+            name="assigned_to"
+            placeholder="e.g. Developer 1"
+        >
+
+        <button type="submit">Create Bug</button>
+
+    </form>
+
+    <a href="{{ url_for('dashboard') }}" class="back-link">
+        ← Back to Dashboard
+    </a>
+
+</div>
+
+</body>
+</html>

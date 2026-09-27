@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BugTrack - All Bugs</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="navbar">
+    <div>
+        <strong>BUGTRACK</strong>
+    </div>
+
+    <div>
+        Welcome, {{ session["username"] }} |
+        <a href="{{ url_for('dashboard') }}">Dashboard</a> |
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+</div>
+
+<div class="dashboard-container">
+
+    <h1>All Bugs</h1>
+    <p>View and manage reported bugs.</p>
+
+    {% if bugs %}
+
+    <table>
+
+        <tr>
+            <th>ID</th>
+            <th>Bug</th>
+            <th>Priority</th>
+            <th>Assigned To</th>
+            <th>Status</th>
+            <th>Change Status</th>
+        </tr>
+
+        {% for bug in bugs %}
+
+        <tr>
+
+            <td>
+                BUG-{{ "%03d"|format(bug["id"]) }}
+            </td>
+
+            <td>
+                <strong>{{ bug["title"] }}</strong>
+                <br>
+                <small>{{ bug["description"] }}</small>
+            </td>
+
+            <td>
+                {{ bug["priority"] }}
+            </td>
+
+            <td>
+                {{ bug["assigned_to"] or "Unassigned" }}
+            </td>
+
+            <td>
+                {{ bug["status"] }}
+            </td>
+
+            <td>
+
+                <form
+                    method="POST"
+                    action="{{ url_for('update_status', bug_id=bug['id']) }}"
+                >
+
+                    <select name="status">
+
+                        <option
+                            value="Open"
+                            {% if bug["status"] == "Open" %}selected{% endif %}
+                        >
+                            Open
+                        </option>
+
+                        <option
+                            value="In Progress"
+                            {% if bug["status"] == "In Progress" %}selected{% endif %}
+                        >
+                            In Progress
+                        </option>
+
+                        <option
+                            value="Resolved"
+                            {% if bug["status"] == "Resolved" %}selected{% endif %}
+                        >
+                            Resolved
+                        </option>
+
+                    </select>
+
+                    <button type="submit" class="small-button">
+                        Update
+                    </button>
+
+                </form>
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+    {% else %}
+
+        <div class="empty-state">
+            <h2>No bugs yet</h2>
+            <p>There are currently no reported bugs.</p>
+
+            <a href="{{ url_for('create_bug') }}">
+                <button>+ Create First Bug</button>
+            </a>
+        </div>
+
+    {% endif %}
+
+</div>
+
+</body>
+</html>
