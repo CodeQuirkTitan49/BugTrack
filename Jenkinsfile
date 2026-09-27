@@ -22,7 +22,7 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                bat 'docker build -t bugtrack:latest .'
+                bat '"C:\\Users\\Samyuktha Jannu\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" build -t bugtrack:latest .'
             }
         }
     }
