@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BugTrack{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% if current_user %}
+<header class="topbar">
+    <a class="brand" href="{{ url_for('dashboard') }}">BUG<span>TRACK</span></a>
+    <nav>
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('bugs') }}">Bugs</a>
+        <a href="{{ url_for('create_bug') }}">Report Bug</a>
+        <a href="{{ url_for('devops') }}" class="devops-link">DevOps</a>
+    </nav>
+    <div class="user-menu">
+        <span>{{ current_user }}</span>
+        <span class="role-badge {{ current_role }}">{{ current_role|capitalize }}</span>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+</header>
+{% endif %}
+
+<main class="page">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-stack">
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>

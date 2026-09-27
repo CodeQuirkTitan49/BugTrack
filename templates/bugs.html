@@ -1,155 +1,32 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-    <title>BugTrack - All Bugs</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-
-<body>
-
-<div class="navbar">
-
-    <div>
-        <strong>BUGTRACK</strong>
-    </div>
-
-    <div>
-        Welcome, {{ session["username"] }} |
-        <a href="{{ url_for('dashboard') }}">Dashboard</a> |
-        <a href="{{ url_for('logout') }}">Logout</a>
-    </div>
-
-</div>
-
-
-<div class="dashboard-container">
-
-    <h1>All Bugs</h1>
-
-    <p>View and manage reported bugs.</p>
-
-
-    {% if bugs %}
-
-    <table>
-
-        <tr>
-            <th>ID</th>
-            <th>Bug</th>
-            <th>Priority</th>
-            <th>Assigned To</th>
-            <th>Status</th>
-            <th>Change Status</th>
-        </tr>
-
-
-        {% for bug in bugs %}
-
-        <tr>
-
-            <td>
-                BUG-{{ "%03d"|format(bug["id"]) }}
-            </td>
-
-
-            <td>
-                <strong>{{ bug["title"] }}</strong>
-                <br>
-                <small>{{ bug["description"] }}</small>
-            </td>
-
-
-            <td>
-                {{ bug["priority"] }}
-            </td>
-
-
-            <td>
-                {{ bug["assigned_to"] or "Unassigned" }}
-            </td>
-
-
-            <td>
-                {{ bug["status"] }}
-            </td>
-
-
-            <td>
-
-                {% if role == "admin" or bug["assigned_to"] == session["username"] %}
-
-                <form
-                    method="POST"
-                    action="{{ url_for('update_status', bug_id=bug['id']) }}"
-                >
-
-                    <select name="status">
-
-                        <option
-                            value="Open"
-                            {% if bug["status"] == "Open" %}selected{% endif %}
-                        >
-                            Open
-                        </option>
-
-
-                        <option
-                            value="In Progress"
-                            {% if bug["status"] == "In Progress" %}selected{% endif %}
-                        >
-                            In Progress
-                        </option>
-
-
-                        <option
-                            value="Resolved"
-                            {% if bug["status"] == "Resolved" %}selected{% endif %}
-                        >
-                            Resolved
-                        </option>
-
-                    </select>
-
-
-                    <button type="submit" class="small-button">
-                        Update
-                    </button>
-
-                </form>
-
-                {% else %}
-
-                <span>View only</span>
-
-                {% endif %}
-
-            </td>
-
-        </tr>
-
-        {% endfor %}
-
-    </table>
-
-
-    {% else %}
-
-    <div class="empty-state">
-
-        <h2>No bugs yet</h2>
-
-        <p>There are currently no reported bugs.</p>
-
-        <a href="{{ url_for('create_bug') }}">
-            <button>+ Create First Bug</button>
-        </a>
-
-    </div>
-
-    {% endif %}
-
-</div>
-
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}BugTrack · Bugs{% endblock %}
+{% block content %}
+<section class="hero-row compact"><div><div class="eyebrow">ISSUE MANAGEMENT</div><h1>Bug backlog</h1><p class="muted">Search, filter, review and track every defect.</p></div><a class="button primary" href="{{ url_for('create_bug') }}">+ Report bug</a></section>
+<section class="panel filters">
+<form method="GET" class="filter-grid">
+    <input name="q" value="{{ q }}" placeholder="Search title or description…">
+    <select name="status"><option value="">All statuses</option><option value="Open" {% if status=='Open' %}selected{% endif %}>Open</option><option value="In Progress" {% if status=='In Progress' %}selected{% endif %}>In Progress</option><option value="Resolved" {% if status=='Resolved' %}selected{% endif %}>Resolved</option></select>
+    <select name="priority"><option value="">All priorities</option>{% for p in ['Low','Medium','High','Critical'] %}<option value="{{ p }}" {% if priority==p %}selected{% endif %}>{{ p }}</option>{% endfor %}</select>
+    <select name="assigned"><option value="">Anyone</option>{% for d in developers %}<option value="{{ d.username }}" {% if assigned==d.username %}selected{% endif %}>{{ d.username }}</option>{% endfor %}</select>
+    {% if current_role == 'admin' %}<select name="approval"><option value="">All review states</option><option value="Pending" {% if approval=='Pending' %}selected{% endif %}>Pending review</option><option value="Approved" {% if approval=='Approved' %}selected{% endif %}>Approved</option><option value="Rejected" {% if approval=='Rejected' %}selected{% endif %}>Rejected</option></select>{% endif %}
+    <button class="button secondary" type="submit">Filter</button><a class="button ghost" href="{{ url_for('bugs') }}">Reset</a>
+</form>
+</section>
+<section class="panel"><div class="panel-head"><div><div class="eyebrow">{{ bugs|length }} RESULTS</div><h2>Tracked defects</h2></div></div>
+{% if bugs %}<div class="table-wrap"><table><thead><tr><th>ID</th><th>Bug</th><th>Priority</th><th>Assigned</th><th>Review</th><th>Status</th><th>Action</th></tr></thead><tbody>
+{% for bug in bugs %}<tr>
+<td><a href="{{ url_for('bug_detail', bug_id=bug.id) }}">BUG-{{ '%03d'|format(bug.id) }}</a></td>
+<td><b>{{ bug.title }}</b><br><small>{{ bug.description|truncate(90) }}</small></td>
+<td><span class="priority {{ bug.priority|lower }}">{{ bug.priority }}</span></td>
+<td>{{ bug.assigned_to or 'Unassigned' }}</td>
+<td><span class="status {{ bug.approval_status|lower|replace(' ','-') }}">{{ 'Pending review' if bug.approval_status == 'Pending' else bug.approval_status }}</span></td>
+<td>
+{% if bug.approval_status != 'Approved' %}<span class="muted">Waiting</span>
+{% elif current_role == 'admin' or bug.assigned_to == current_user %}
+<form method="POST" action="{{ url_for('update_status', bug_id=bug.id) }}" class="inline-table-form"><select name="status"><option value="Open" {% if bug.status=='Open' %}selected{% endif %}>Open</option><option value="In Progress" {% if bug.status=='In Progress' %}selected{% endif %}>In Progress</option><option value="Resolved" {% if bug.status=='Resolved' %}selected{% endif %}>Resolved</option></select><button class="button tiny" type="submit">Save</button></form>
+{% else %}<span class="muted">View only</span>{% endif %}
+</td>
+<td><a class="text-link" href="{{ url_for('bug_detail', bug_id=bug.id) }}">Open →</a></td>
+</tr>{% endfor %}
+</tbody></table></div>{% else %}<div class="empty"><h3>No matching bugs</h3><p>Try changing the filters.</p></div>{% endif %}</section>
+{% endblock %}

@@ -1,71 +1,12 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>BugTrack - Create Bug</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-
-<body>
-
-<div class="navbar">
-    <div>
-        <strong>BUGTRACK</strong>
-    </div>
-
-    <div>
-        Welcome, {{ session["username"] }} |
-        <a href="{{ url_for('dashboard') }}">Dashboard</a> |
-        <a href="{{ url_for('logout') }}">Logout</a>
-    </div>
-</div>
-
-<div class="form-container">
-
-    <h1>Create New Bug</h1>
-    <p>Report a problem in the application.</p>
-
-    <form method="POST">
-
-        <label>Bug Title</label>
-        <input
-            type="text"
-            name="title"
-            placeholder="e.g. Login button not working"
-            required
-        >
-
-        <label>Description</label>
-        <textarea
-            name="description"
-            rows="6"
-            placeholder="Describe the problem..."
-            required
-        ></textarea>
-
-        <label>Priority</label>
-        <select name="priority" required>
-            <option value="Low">Low</option>
-            <option value="Medium" selected>Medium</option>
-            <option value="High">High</option>
-            <option value="Critical">Critical</option>
-        </select>
-
-        <label>Assigned To</label>
-        <input
-            type="text"
-            name="assigned_to"
-            placeholder="e.g. Developer 1"
-        >
-
-        <button type="submit">Create Bug</button>
-
-    </form>
-
-    <a href="{{ url_for('dashboard') }}" class="back-link">
-        ← Back to Dashboard
-    </a>
-
-</div>
-
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}BugTrack · Report Bug{% endblock %}
+{% block content %}
+<section class="hero-row compact"><div><div class="eyebrow">ISSUE MANAGEMENT</div><h1>Report a bug</h1><p class="muted">Capture enough context for a developer to reproduce and fix the issue.</p></div></section>
+<section class="panel form-panel"><form method="POST" class="stack-form">
+<label>Bug title</label><input name="title" placeholder="e.g. Login button does not respond" required>
+<label>Description</label><textarea name="description" rows="7" placeholder="What happened? What did you expect? Include useful reproduction details."></textarea>
+<div class="form-grid"><div><label>Priority</label><select name="priority"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select></div>
+<div><label>Assignment</label>{% if current_role == 'admin' %}<select name="assigned_to"><option value="">Unassigned</option>{% for d in developers %}<option value="{{ d.username }}">{{ d.username }}</option>{% endfor %}</select><small class="muted">Admin-created issues are approved immediately.</small>{% else %}<div class="notice">Developer reports are sent to Admin for review and assignment.</div><input type="hidden" name="assigned_to" value="">{% endif %}</div></div>
+<button class="button primary" type="submit">{{ 'Create bug' if current_role == 'admin' else 'Submit issue to Admin' }}</button>
+</form></section>
+{% endblock %}

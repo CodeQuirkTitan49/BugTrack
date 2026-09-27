@@ -1,39 +1,14 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>BugTrack - Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-
-<body>
-
-<div class="auth-container">
-
-    <h1>BUGTRACK</h1>
-    <p>Bug Tracking Management System</p>
-
-    {% if error %}
-        <div class="error">{{ error }}</div>
-    {% endif %}
-
-    <form method="POST">
-
-        <label>Username</label>
-        <input type="text" name="username" required>
-
-        <label>Password</label>
-        <input type="password" name="password" required>
-
-        <button type="submit">Login</button>
-
-    </form>
-
-    <p>
-        Don't have an account?
-        <a href="{{ url_for('register') }}">Register</a>
-    </p>
-
-</div>
-
-</body>
-</html>
+{% extends "auth.html" %}
+{% block title %}BugTrack · Login{% endblock %}
+{% block content %}
+<h1>Welcome back</h1>
+<p class="muted">Sign in to your project workspace.</p>
+<form method="POST" class="stack-form">
+    <label>Username</label>
+    <input name="username" autocomplete="username" required>
+    <label>Password</label>
+    <input type="password" name="password" autocomplete="current-password" required>
+    <button class="primary full" type="submit">Sign in</button>
+</form>
+<p class="form-foot">New here? <a href="{{ url_for('register') }}">Create an account</a></p>
+{% endblock %}

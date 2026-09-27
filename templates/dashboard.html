@@ -1,96 +1,67 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>BugTrack - Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-
-<body>
-
-<div class="navbar">
+{% extends "base.html" %}
+{% block title %}BugTrack · Dashboard{% endblock %}
+{% block content %}
+<section class="hero-row">
     <div>
-        <strong>BUGTRACK</strong>
+        <div class="eyebrow">PROJECT CONTROL CENTER</div>
+        <h1>Good to see you, {{ current_user }}.</h1>
+        <p class="muted">Manage defects and watch the software delivery pipeline from one place.</p>
     </div>
+    <div class="hero-actions">
+        <a class="button secondary" href="{{ url_for('bugs') }}">View bugs</a>
+        <a class="button primary" href="{{ url_for('create_bug') }}">+ Report bug</a>
+    </div>
+</section>
 
-    <div>
-        Welcome, {{ username }} |
-        <a href="{{ url_for('logout') }}">Logout</a>
-    </div>
+<div class="stat-grid">
+    <div class="stat-card"><span>Total bugs</span><strong>{{ stats.total }}</strong><small>All tracked defects</small></div>
+    <div class="stat-card"><span>Open</span><strong>{{ stats.open }}</strong><small>Waiting for work</small></div>
+    <div class="stat-card"><span>In progress</span><strong>{{ stats.progress }}</strong><small>Currently being fixed</small></div>
+    <div class="stat-card"><span>Resolved</span><strong>{{ stats.resolved }}</strong><small>Completed defects</small></div>
 </div>
 
-<div class="dashboard-container">
+{% if current_role == 'admin' %}
+<div class="two-col">
+<section class="panel"><div class="panel-head"><div><div class="eyebrow">TRIAGE QUEUE</div><h2>Issues awaiting review</h2></div><a class="text-link" href="{{ url_for('bugs', approval='Pending') }}">View all →</a></div>
+{% if pending_reports %}{% for bug in pending_reports %}<div class="queue-row"><div><a href="{{ url_for('bug_detail', bug_id=bug.id) }}"><b>BUG-{{ '%03d'|format(bug.id) }} · {{ bug.title }}</b></a><small>{{ bug.reporter }} · {{ bug.priority }}</small></div><span class="status pending">Pending</span></div>{% endfor %}{% else %}<div class="empty small-empty">No pending reports.</div>{% endif %}</section>
+<section class="panel"><div class="panel-head"><div><div class="eyebrow">TEAM LOAD</div><h2>Developer workload</h2></div></div>
+{% for dev in workload %}<div class="workload-row"><div><b>{{ dev.username }}</b><small>{{ dev.active }} active · {{ dev.total }} total</small></div><div class="workload-bugs">{% for b in dev.bugs[:4] %}<a href="{{ url_for('bug_detail', bug_id=b.id) }}">BUG-{{ '%03d'|format(b.id) }}</a>{% else %}<span class="muted">No assigned bugs</span>{% endfor %}</div></div>{% else %}<div class="empty small-empty">No developers registered yet.</div>{% endfor %}
+</section>
+</div>
+{% endif %}
 
-    <h1>Dashboard</h1>
-
-    <div class="stats">
-
-        <div class="stat-card">
-            <h3>Total Bugs</h3>
-            <p>{{ total }}</p>
-        </div>
-
-        <div class="stat-card">
-            <h3>Open</h3>
-            <p>{{ open_bugs }}</p>
-        </div>
-
-        <div class="stat-card">
-            <h3>In Progress</h3>
-            <p>{{ in_progress }}</p>
-        </div>
-
-        <div class="stat-card">
-            <h3>Resolved</h3>
-            <p>{{ resolved }}</p>
-        </div>
-
-    </div>
-
-    <div class="actions">
-
-        <a href="{{ url_for('create_bug') }}">
-            <button>+ Create Bug</button>
-        </a>
-
-        <a href="{{ url_for('bugs') }}">
-            <button>View All Bugs</button>
-        </a>
-
-    </div>
-
-    <h2>Recent Bugs</h2>
-
-    {% if recent_bugs %}
-
-        <table>
-
-            <tr>
-                <th>ID</th>
-                <th>Title</th>
-                <th>Priority</th>
-                <th>Status</th>
-            </tr>
-
-            {% for bug in recent_bugs %}
-
-            <tr>
-                <td>BUG-{{ "%03d"|format(bug["id"]) }}</td>
-                <td>{{ bug["title"] }}</td>
-                <td>{{ bug["priority"] }}</td>
-                <td>{{ bug["status"] }}</td>
-            </tr>
-
+<div class="two-col">
+    <section class="panel">
+        <div class="panel-head"><div><div class="eyebrow">DELIVERY HEALTH</div><h2>DevOps snapshot</h2></div><a class="text-link" href="{{ url_for('devops') }}">Open pipeline →</a></div>
+        <div class="pipeline-mini">
+            {% set stages = [('SOURCE','PASSED'),('BUILD','PASSED'),('TEST', last_pipeline.test_status if last_pipeline else 'NOT RUN'),('DOCKER', last_pipeline.docker_status if last_pipeline else 'NOT RUN'),('DEPLOY', last_pipeline.deploy_status if last_pipeline else 'NOT RUN')] %}
+            {% for name, status in stages %}
+            <div class="stage {{ status|lower|replace(' ','-') }}"><span>{{ name }}</span><b>{{ status }}</b></div>
+            {% if not loop.last %}<i>→</i>{% endif %}
             {% endfor %}
+        </div>
+        <div class="git-strip"><span>Branch <b>{{ git.branch }}</b></span><span>Commit <b>{{ git.commit }}</b></span><span class="{{ 'good' if git.clean else 'warn' }}">{{ 'Working tree clean' if git.clean else 'Uncommitted changes' }}</span></div>
+    </section>
 
-        </table>
-
-    {% else %}
-
-        <p>No bugs have been reported yet.</p>
-
-    {% endif %}
-
+    <section class="panel">
+        <div class="panel-head"><div><div class="eyebrow">ATTENTION</div><h2>Work queue</h2></div></div>
+        <div class="queue-row"><span>Critical unresolved</span><strong class="danger-text">{{ stats.critical }}</strong></div>
+        <div class="queue-row"><span>Assigned to me</span><strong>{{ stats.mine }}</strong></div>
+        <div class="queue-row"><span>My role</span><strong>{{ current_role|capitalize }}</strong></div>
+    </section>
 </div>
 
-</body>
-</html>
+<section class="panel">
+    <div class="panel-head"><div><div class="eyebrow">LATEST</div><h2>Recent bugs</h2></div><a class="text-link" href="{{ url_for('bugs') }}">View all →</a></div>
+    {% if recent_bugs %}
+    <div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Bug</th><th>Priority</th><th>Assigned</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for bug in recent_bugs %}
+        <tr><td><a href="{{ url_for('bug_detail', bug_id=bug.id) }}">BUG-{{ '%03d'|format(bug.id) }}</a></td><td><b>{{ bug.title }}</b><br><small>{{ bug.description|truncate(65) }}</small></td><td><span class="priority {{ bug.priority|lower }}">{{ bug.priority }}</span></td><td>{{ bug.assigned_to or 'Unassigned' }}</td><td><span class="status {{ bug.status|lower|replace(' ','-') }}">{{ bug.status }}</span></td></tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+    {% else %}<div class="empty"><h3>No bugs yet</h3><p>Create your first defect to start the workflow.</p></div>{% endif %}
+</section>
+{% endblock %}

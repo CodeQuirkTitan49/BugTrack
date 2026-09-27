@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BugTrack{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="auth-body">
+<div class="auth-shell">
+    <div class="auth-brand">BUG<span>TRACK</span></div>
+    <div class="auth-tag">DEVOPS-ENABLED BUG MANAGEMENT</div>
+    <div class="auth-card">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
+    <p class="auth-footer">Flask · SQLite · GitHub · CI/CD · Docker</p>
+</div>
+</body>
+</html>
