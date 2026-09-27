@@ -10,7 +10,7 @@ pipeline {
 
         stage('Install') {
             steps {
-                bat 'python -m pip install -r requirements.txt'
+                bat '"C:\\Users\\Samyuktha Jannu\\AppData\\Local\\Programs\\Python\\Python310\\python.exe" -m pip install -r requirements.txt'
             }
         }
 
